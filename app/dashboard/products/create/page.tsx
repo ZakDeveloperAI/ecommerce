@@ -9,14 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useFormState } from "react-dom";
 import {useForm} from "@conform-to/react"
 import { parseWithZod } from "@conform-to/zod";
-import { productSchema } from "@/lib/zodSchemas";
+import { productSchema } from "@/app/lib/zodSchemas";
 import { useState } from "react";
 import Image from "next/image";
+import { categories } from "@/app/lib/categories";
+import { SubmitButton } from "@/app/components/SubmitButtons";
 
 export default function ProductCreateRoute() {
     const [images, setImages] =useState<string[]>([]);
@@ -30,7 +32,12 @@ export default function ProductCreateRoute() {
 
         shouldValidate: 'onBlur',
         shouldRevalidate: "onInput",
-    })
+    });
+
+    const handleDelete = (index: number) => {
+        setImages(images.filter((_ , i) => i !== index));
+    }
+
     return(
         <form id={form.id} onSubmit={form.onSubmit} action={action}>
             <div className="flex items-center gap-4">
@@ -78,6 +85,7 @@ export default function ProductCreateRoute() {
                                 name={fields.price.name}
                                 defaultValue={fields.price.initialValue}
                                 type="number" 
+                                step="0.01"
                                 placeholder="$34.90"
                             />
                             <p className="text-red-500">{fields.price.errors}</p>
@@ -109,7 +117,23 @@ export default function ProductCreateRoute() {
                             <p className="text-red-500">{fields.status.errors}</p>
                         </div>
                         <div className="flex flex-col gap-3">
+                            <Label>Category</Label>
+                            <Select key={fields.category.key} name={fields.category.name} defaultValue={fields.category.initialValue}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Category"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map((category)=>(
+                                    <SelectItem key={category.id} value={category.name}>{category.title}</SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <p className="text-red-500">{fields.category.errors}</p>
+                        </div>
+                        <div className="flex flex-col gap-3">
                             <Label>Images</Label>
+                            <input type="hidden" value={images} key={fields.images.key} 
+                                name={fields.images.name} defaultValue={fields.images.initialValue as any}/>
                             {images.length>0 ? (
                                 <div className="flex gap-5">
                                     {images.map((image, index)=>(
@@ -119,6 +143,12 @@ export default function ProductCreateRoute() {
                                                 alt="Product Image" 
                                                 className="w-full h-full object-cover rounded-lg border"
                                             />
+                                            <button type="button"
+                                                onClick={()=> handleDelete(index)}
+                                                className="absolute -top-3 -right-3 bg-red-500 p-2 rounded-lg text-white"
+                                            >
+                                                <XIcon className="w-3 h-3"/>
+                                            </button>
                                         </div>
                                     ))}
 
@@ -132,11 +162,12 @@ export default function ProductCreateRoute() {
                                 onUploadError={()=>{alert("something went wrong");}}
                                 />
                             )}
+                            <p className="text-red-500">{fields.images.errors}</p>
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button>Create Product</Button>
+                    <SubmitButton/>
                 </CardFooter>
             </Card>
         </form>

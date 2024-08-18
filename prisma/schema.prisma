@@ -28,7 +28,7 @@ model Product{
   name String
   description String
   status ProductStatus
-  price Int
+  price Float
   images String[]
   category Category
   isFeatured Boolean @default(false)
